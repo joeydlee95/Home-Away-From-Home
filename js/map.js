@@ -18,7 +18,6 @@ function initMap() {
     {title: 'Gas Works', location: {lat: 47.6456, lng: -122.3344}}
   ];
 
-  var bounds = new google.maps.LatLngBounds();
   var largeInfowindow = new google.maps.InfoWindow();
 
   // Use locations array to create array of markers.
@@ -29,7 +28,6 @@ function initMap() {
 
     // Create a marker for each location
     var marker = new google.maps.Marker({
-      map: map,
       position: position,
       title: title,
       animation: google.maps.Animation.DROP,
@@ -39,16 +37,32 @@ function initMap() {
     // Add marker to the markers array.
     markers.push(marker);
 
-    // Extend boundary for every marker.
-    bounds.extend(markers[i].position);
-
     // Create onclick even for each marker.
     marker.addListener('click', function() {
       populateInfoWindow(this, largeInfowindow);
     });
   }
 
+  document.getElementById('show').addEventListener('click', showLoc);
+  document.getElementById('hide').addEventListener('click', hideLoc);
+
+}
+
+function showLoc() {
+  var bounds = new google.maps.LatLngBounds();
+
+  // Extend boundaries and displays each marker.
+  for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(map);
+    bounds.extend(markers[i].position);
+  }
   map.fitBounds(bounds);
+}
+
+function hideLoc() {
+  for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(null);
+  }
 }
 
 function populateInfowWindow(marker, infowindow) {
