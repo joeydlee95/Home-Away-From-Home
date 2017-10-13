@@ -2,14 +2,21 @@
 <html>
  <head>
  <!-- styles put here, but you can include a CSS file and reference it instead! -->
-   <style type="text/css">
-     html, body { height: 100%; margin: 0; padding: 0; }
-     #map { height: 100%; }
-   </style>
+   <link rel="stylesheet" type="text/css" href="css/styles.css">
  </head>
  <body>
-   <!--Create a place to put the map in the HTML-->
-   <div id="map"></div>
+  <div class="container">
+    <div class="options-box">
+      <h1>Home Away From Home</h1>
+      <div>
+        <input id="show" type="button" value="Show">
+        <input id="hide" type="button" value="Hide">
+      </div>
+    </div>
+    <!--Create a place to put the map in the HTML-->
+    <div id="map"></div>
+  </div>
+
    <script src="js/map.js">
    </script>
 
