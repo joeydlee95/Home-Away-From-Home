@@ -164,6 +164,10 @@ function initMap() {
     toggleDrawing(drawingManager);
   });
 
+  document.getElementById('zoom-to-area').addEventListener('click', function() {
+    zoomToArea();
+  })
+
   drawingManager.addListener('overlaycomplete', function(event) {
     // Check if a polygon exists
     if (polygon) {
@@ -281,5 +285,31 @@ function searchWithinPolygon() {
       // Hide markers outside polygon.
       markers[i].setMap(null);
     }
+  }
+}
+
+function zoomToArea() {
+  // Initialize the geocoder.
+  var geocoder = new google.maps.Geocoder();
+
+  // Get the address from input.
+  var address = document.getElementById('zoom-to-area-text').value;
+
+  // Check for blank address.
+  if (address == '') {
+    window.alert('You must enter an address.');
+  } else {
+    geocoder.geocode(
+      {
+       address: address,
+       componentRestrictions: {locality: 'Seattle'},
+      }, function(result, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          map.setCenter(result[0].geometry.location);
+          map.setZoom(15);
+        } else {
+          window.alert('Could not find that location. Enter a more specific location.');
+        }
+      });
   }
 }
