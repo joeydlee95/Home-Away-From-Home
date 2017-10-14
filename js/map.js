@@ -128,7 +128,7 @@ function initMap() {
     // Add marker to the markers array.
     markers.push(marker);
 
-    // Create onclick even for each marker.
+    // Create an onclick event to open the large infowindow at each marker.
     marker.addListener('click', function() {
       populateInfoWindow(this, largeInfowindow);
     });
@@ -158,6 +158,51 @@ function makeMarkerIcon(markerColor) {
   return markerImage;
 }
 
+function populateInfoWindow(marker, infowindow) {
+  // Check if infowindow is already open.
+  if (infowindow.marker != marker) {
+
+    // Clear the infowindow to give streetview time to load.
+    infowindow.setContent('');
+    infowindow.marker = marker;
+
+    // Make sure content is cleared when infowindow is closed.
+    infowindow.addListener('closeclick', function() {
+      infowindow.marker = null;
+    });
+
+    var streetViewService = new google.maps.StreetViewService();
+    var radius = 50;
+
+    function getStreetView(data, status) {
+      if (status == google.maps.StreetViewStatus.OK) {
+        var nearStreetViewLocation = data.location.latLng;
+        var heading = google.maps.geometry.spherical.computeHeading(
+          nearStreetViewLocation, marker.position);
+        infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
+        var panoramaOptions = {
+          position: nearStreetViewLocation,
+          pov: {
+            heading: heading,
+            pitch: 30
+          }
+        };
+        var panorama = new google.maps.StreetViewPanorama(
+          document.getElementById('pano'), panoramaOptions);
+      } else {
+        infowindow.setContent('<div>' + marker.title + '</div>' +
+          '<div>No Street View Found</div>');
+      }
+    }
+    
+    // Using API get closest streetview image within 50 meters
+    streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
+
+    // Open infowindow on correct marker.
+    infowindow.open(map, marker);
+  }
+}
+
 function showLoc() {
   var bounds = new google.maps.LatLngBounds();
 
@@ -172,19 +217,5 @@ function showLoc() {
 function hideLoc() {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
-  }
-}
-
-function populateInfowWindow(marker, infowindow) {
-  // Check if infowindow is already open.
-  if (infowindow.marker != marker) {
-    infowindow.marker = marker;
-    infowindow.setContent('<div>' + marker.title + '</div>');
-    infowindow.open(map, marker);
-
-    // Make sure content is cleared when infowindow is closed.
-    infowindow.addListener('closeclick', function() {
-      infowindow.setMarker(null);
-    });
   }
 }
