@@ -58,6 +58,10 @@ hr {
   height: 200px;
 }
 
+#search-within-time-text {
+  width: 84%;
+}
+
 .text {
   font-size: 12px;
 }
