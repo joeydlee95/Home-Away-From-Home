@@ -27,6 +27,13 @@ h1 {
   width: 48%;
 }
 
+hr {
+  background: #D0D7D9;
+  height: 1px;
+  margin: 20px 0 20px 0;
+  border: none;
+}
+
 #map {
   bottom:0px;
   height: 100%;
@@ -44,4 +51,13 @@ h1 {
   padding: 10px 10px 30px 10px;
   text-align: left;
   width: 340px;
+}
+
+#pano {
+  width: 200px;
+  height: 200px;
+}
+
+.text {
+  font-size: 12px;
 }
