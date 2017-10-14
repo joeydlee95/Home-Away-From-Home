@@ -1,6 +1,9 @@
 var map;
 var markers = [];
 
+// Ensures that only 1 polygon is enabled at a time.
+var polygon = null;
+
 // Initialize the map
 function initMap() {
 
@@ -105,6 +108,18 @@ function initMap() {
 
   var largeInfowindow = new google.maps.InfoWindow();
 
+  // Initialize the drawing manager
+  var drawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: google.maps.drawing.OverlayType.POLYGON,
+    drawingControl: true,
+    drawingControlOptions: {
+      position: google.maps.ControlPosition.TOP_LEFT,
+      drawingModes: [
+        google.maps.drawing.OverlayType.POLYGON
+      ]
+    }
+  });
+
   // Style markers
   var defaultIcon = makeMarkerIcon('0091FF');
   var highlightedIcon = makeMarkerIcon('FFFF24');
@@ -144,6 +159,32 @@ function initMap() {
 
   document.getElementById('show').addEventListener('click', showLoc);
   document.getElementById('hide').addEventListener('click', hideLoc);
+
+  document.getElementById('toggle-drawing').addEventListener('click', function() {
+    toggleDrawing(drawingManager);
+  });
+
+  drawingManager.addListener('overlaycomplete', function(event) {
+    // Check if a polygon exists
+    if (polygon) {
+      polygon.setMap(null);
+      hideLoc();
+    }
+
+    // Switch back to the hand after the polygon is made.
+    drawingManager.setDrawingMode(null);
+
+    // Create a editable polygon from overlay.
+    polygon = event.overlay;
+    polygon.setEditable(true);
+
+    // Search for markers within the polygon.
+    searchWithinPolygon();
+
+    // Redo search if polygon is changed.
+    polygon.getPath().addListener('set_at', searchWithinPolygon);
+    polygon.getPath().addListener('insert_at', searchWithinPolygon);
+  });
 
 }
 
@@ -217,5 +258,28 @@ function showLoc() {
 function hideLoc() {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
+  }
+}
+
+function toggleDrawing(drawingManager) {
+  if (drawingManager.map) {
+    drawingManager.setMap(null);
+    // If user drew something, undo the drawing.
+    if (polygon) {
+      polygon.setMap(null);
+    }
+  } else {
+    drawingManager.setMap(map);
+  }
+}
+
+function searchWithinPolygon() {
+  for (var i = 0; i < markers.length; i++) {
+    if (google.maps.geometry.poly.containsLocation(markers[i].position, polygon)) {
+      markers[i].setMap(map);
+    } else {
+      // Hide markers outside polygon.
+      markers[i].setMap(null);
+    }
   }
 }

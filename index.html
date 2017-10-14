@@ -11,6 +11,12 @@
       <div>
         <input id="show" type="button" value="Show">
         <input id="hide" type="button" value="Hide">
+
+        <hr>
+
+        <span class="text"> Draw a shape to see if there is something to visit there! </span>
+        <input id="toggle-drawing" type="button" value="Drawing Tools">
+
       </div>
     </div>
     <!--Create a place to put the map in the HTML-->
@@ -22,7 +28,7 @@
 
    <!--Load the JS API ASYNCHRONOUSLY below.-->
    <script async defer 
-      src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
+      src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
    </script>
  </body>
 </html>
