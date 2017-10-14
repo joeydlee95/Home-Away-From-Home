@@ -42,6 +42,12 @@
           <input id="search-within-time-text" type="text" placeholder="Ex: Amazon Headquarters or 410 Terry Ave. North Seattle, WA">
           <input id="search-within-time" type="button" value="Go">
         </div>
+
+        <div>
+          <span class="text">Search for nearby places</span>
+          <input id="places-search" type="text" placeholder="Ex: Pizza delivery in Seattle">
+          <input id="go-places" type="button" value="Go">
+        </div>
       
       </div>
     </div>
@@ -54,7 +60,7 @@
 
    <!--Load the JS API ASYNCHRONOUSLY below.-->
    <script async defer 
-      src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
+      src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
    </script>
  </body>
 </html>
