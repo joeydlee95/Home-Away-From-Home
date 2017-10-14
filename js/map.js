@@ -4,6 +4,7 @@ var markers = [];
 // Ensures that only 1 polygon is enabled at a time.
 var polygon = null;
 
+
 // Initialize the map
 function initMap() {
 
@@ -196,6 +197,7 @@ function initMap() {
 
 }
 
+
 function makeMarkerIcon(markerColor) {
   var markerImage = new google.maps.MarkerImage(
     'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor +
@@ -206,6 +208,7 @@ function makeMarkerIcon(markerColor) {
     new google.maps.Size(21, 34));
   return markerImage;
 }
+
 
 function populateInfoWindow(marker, infowindow) {
   // Check if infowindow is already open.
@@ -252,6 +255,7 @@ function populateInfoWindow(marker, infowindow) {
   }
 }
 
+
 function showLoc() {
   var bounds = new google.maps.LatLngBounds();
 
@@ -263,11 +267,13 @@ function showLoc() {
   map.fitBounds(bounds);
 }
 
+
 function hideLoc() {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
   }
 }
+
 
 function toggleDrawing(drawingManager) {
   if (drawingManager.map) {
@@ -281,6 +287,7 @@ function toggleDrawing(drawingManager) {
   }
 }
 
+
 function searchWithinPolygon() {
   for (var i = 0; i < markers.length; i++) {
     if (google.maps.geometry.poly.containsLocation(markers[i].position, polygon)) {
@@ -291,6 +298,7 @@ function searchWithinPolygon() {
     }
   }
 }
+
 
 function zoomToArea() {
   // Initialize the geocoder.
@@ -317,6 +325,7 @@ function zoomToArea() {
       });
   }
 }
+
 
 function searchWithinTime() {
   // Initialize distance matrix service
@@ -351,6 +360,7 @@ function searchWithinTime() {
   }
 }
 
+
 // This function will go through each of the results, and,
 // if the distance is LESS than the value in the picker, show it on the map.
 function displayMarkersWithinTime(response) {
@@ -381,7 +391,9 @@ function displayMarkersWithinTime(response) {
           // Create a mini infowindow to open immediately and contain the
           // distance and duration
           var infowindow = new google.maps.InfoWindow({
-            content: durationText + ' away, ' + distanceText
+            content: durationText + ' away, ' + distanceText +
+              '<div><input type=\"button\" value=\"View Route\" onclick=' +
+              '\"displayDirections(&quot;' + origins[i] + '&quot;);\"></input></div>'
           });
           infowindow.open(map, markers[i]);
           // Put this in so that this small window closes if the user clicks
@@ -397,4 +409,35 @@ function displayMarkersWithinTime(response) {
   if (!atLeastOne) {
     window.alert('We could not find any locations within that distance!');
   }
+}
+
+
+function displayDirections(origin) {
+  hideLoc();
+  var directionsService = new google.maps.DirectionsService;
+  // Get the destination address from the user entered value.
+  var destinationAddress =
+      document.getElementById('search-within-time-text').value;
+  // Get mode again from the user entered value.
+  var mode = document.getElementById('mode').value;
+  directionsService.route({
+    // The origin is the passed in marker's position.
+    origin: origin,
+    // The destination is user entered address.
+    destination: destinationAddress,
+    travelMode: google.maps.TravelMode[mode]
+  }, function(response, status) {
+    if (status === google.maps.DirectionsStatus.OK) {
+      var directionsDisplay = new google.maps.DirectionsRenderer({
+        map: map,
+        directions: response,
+        draggable: true,
+        polylineOptions: {
+          strokeColor: 'green'
+        }
+      });
+    } else {
+      window.alert('Directions request failed due to ' + status);
+    }
+  });
 }
