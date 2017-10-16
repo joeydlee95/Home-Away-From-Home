@@ -5,6 +5,7 @@ var markers = [];
 var polygon = null;
 
 var placeMarkers = [];
+var drawingManager;
 
 
 // Initialize the map
@@ -128,7 +129,7 @@ function initMap() {
   var largeInfowindow = new google.maps.InfoWindow();
 
   // Initialize the drawing manager
-  var drawingManager = new google.maps.drawing.DrawingManager({
+  drawingManager = new google.maps.drawing.DrawingManager({
     drawingMode: google.maps.drawing.OverlayType.POLYGON,
     drawingControl: true,
     drawingControlOptions: {
@@ -175,19 +176,6 @@ function initMap() {
       this.setIcon(defaultIcon);
     });
   }
-
-  //document.getElementById('show').addEventListener('click', showLoc);
-  //document.getElementById('hide').addEventListener('click', function() {
-  //  hideMarkers(markers);
-  //});
-
-  document.getElementById('toggle-drawing').addEventListener('click', function() {
-    toggleDrawing(drawingManager);
-  });
-
-  document.getElementById('zoom-to-area').addEventListener('click', function() {
-    zoomToArea();
-  });
 
   document.getElementById('search-within-time').addEventListener('click', function() {
     searchWithinTime();
@@ -292,20 +280,6 @@ function hideMarkers(markers) {
   }
 }
 
-
-function toggleDrawing(drawingManager) {
-  if (drawingManager.map) {
-    drawingManager.setMap(null);
-    // If user drew something, undo the drawing.
-    if (polygon) {
-      polygon.setMap(null);
-    }
-  } else {
-    drawingManager.setMap(map);
-  }
-}
-
-
 function searchWithinPolygon() {
   for (var i = 0; i < markers.length; i++) {
     if (google.maps.geometry.poly.containsLocation(markers[i].position, polygon)) {
@@ -314,33 +288,6 @@ function searchWithinPolygon() {
       // Hide markers outside polygon.
       markers[i].setMap(null);
     }
-  }
-}
-
-
-function zoomToArea() {
-  // Initialize the geocoder.
-  var geocoder = new google.maps.Geocoder();
-
-  // Get the address from input.
-  var address = document.getElementById('zoom-to-area-text').value;
-
-  // Check for blank address.
-  if (address == '') {
-    window.alert('You must enter an address.');
-  } else {
-    geocoder.geocode(
-      {
-       address: address,
-       componentRestrictions: {locality: 'Seattle'},
-      }, function(result, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          map.setCenter(result[0].geometry.location);
-          map.setZoom(15);
-        } else {
-          window.alert('Could not find that location. Enter a more specific location.');
-        }
-      });
   }
 }
 
@@ -579,6 +526,10 @@ function getPlacesDetails(marker, infowindow) {
 function AppViewModel() {
   var self = this;
 
+  // Text Bindings
+  self.zoom_text = ko.observable("");
+
+  // Click Bindings
   self.show = function () {
     var bounds = new google.maps.LatLngBounds();
 
@@ -593,6 +544,48 @@ function AppViewModel() {
   self.hide = function() {
     hideMarkers(markers);
   }
+
+  self.draw = function() {
+    if (drawingManager.map) {
+      drawingManager.setMap(null);
+      // If user drew something, undo the drawing.
+      if (polygon) {
+        polygon.setMap(null);
+      }
+    } else {
+      drawingManager.setMap(map);
+    }
+  };
+
+  self.zoom = function() {
+    var address = self.zoom_text();
+    // Initialize the geocoder.
+    var geocoder = new google.maps.Geocoder();
+
+    // Get the address from input.
+    var address = self.zoom_text();
+
+    // Check for blank address.
+    if (address == '') {
+      window.alert('You must enter an address.');
+    } else {
+      geocoder.geocode(
+        {
+         address: address,
+         componentRestrictions: {locality: 'Seattle'},
+        }, function(result, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            map.setCenter(result[0].geometry.location);
+            map.setZoom(15);
+          } else {
+            window.alert('Could not find that location. Enter a more specific location.');
+          }
+        });
+    }
+  };
+
+
+
 }
 
 ko.applyBindings(new AppViewModel());

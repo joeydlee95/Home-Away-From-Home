@@ -15,11 +15,11 @@
         <hr>
 
         <span class="text"> Draw a shape to see if there is something to visit there! </span>
-        <input id="toggle-drawing" type="button" value="Drawing Tools">
+        <input id="toggle-drawing" type="button" value="Drawing Tools" data-bind="click: draw">
 
         <div>
-          <input id="zoom-to-area-text" type="text" placeholder="Choose a region!">
-          <input id="zoom-to-area" type="button" value="Zoom">
+          <input id="zoom-to-area-text" type="text" placeholder="Choose a region!" data-bind="value: zoom_text">
+          <input id="zoom-to-area" type="button" value="Zoom" data-bind="click: zoom">
         </div>
 
         <hr>
