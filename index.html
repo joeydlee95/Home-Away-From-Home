@@ -14,8 +14,10 @@
 
         <hr>
 
-        <span class="text"> Draw a shape to see if there is something to visit there! </span>
-        <input id="toggle-drawing" type="button" value="Drawing Tools" data-bind="click: draw">
+        <div>
+          <h1> Draw a shape to see if there is something to visit there! </h1>
+          <input id="toggle-drawing" type="button" value="Drawing Tools" data-bind="click: draw">
+        </div>
 
         <div>
           <input id="zoom-to-area-text" type="text" placeholder="Choose a region!" data-bind="value: zoom_text">
@@ -43,10 +45,11 @@
           <input id="search-within-time" type="button" value="Go">
         </div>
 
+        <hr>
         <div>
-          <span class="text">Search for nearby places</span>
-          <input id="places-search" type="text" placeholder="Ex: Pizza delivery in Seattle">
-          <input id="go-places" type="button" value="Go">
+          <h1>Search for nearby places (cafes, restaurants, etc)</h1>
+          <input id="places-search" type="text" placeholder="Ex: Pizza delivery in Seattle" data-bind="value: places_text">
+          <input id="go-places" type="button" value="Go" data-bind="click: places">
         </div>
       
       </div>

@@ -188,7 +188,7 @@ function initMap() {
   });
   // Listen for the event fired when the user selects a prediction and clicks
   // "go" more details for that place.
-  document.getElementById('go-places').addEventListener('click', textSearchPlaces);
+  //document.getElementById('go-places').addEventListener('click', textSearchPlaces);
 
   drawingManager.addListener('overlaycomplete', function(event) {
     // Check if a polygon exists
@@ -418,21 +418,7 @@ function searchBoxPlaces(searchBox) {
     window.alert('We did not find any places matching that search!');
   }
 }
-// This function firest when the user select "go" on the places search.
-// It will do a nearby search using the entered query string or place.
-function textSearchPlaces() {
-  var bounds = map.getBounds();
-  hideMarkers(placeMarkers);
-  var placesService = new google.maps.places.PlacesService(map);
-  placesService.textSearch({
-    query: document.getElementById('places-search').value,
-    bounds: bounds
-  }, function(results, status) {
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      createMarkersForPlaces(results);
-    }
-  });
-}
+
 // This function creates markers for each place found in either places search.
 function createMarkersForPlaces(places) {
   var bounds = new google.maps.LatLngBounds();
@@ -528,6 +514,7 @@ function AppViewModel() {
 
   // Text Bindings
   self.zoom_text = ko.observable("");
+  self.places_text = ko.observable("")
 
   // Click Bindings
   self.show = function () {
@@ -584,6 +571,19 @@ function AppViewModel() {
     }
   };
 
+  self.places = function() {
+    var bounds = map.getBounds();
+    hideMarkers(placeMarkers);
+    var placesService = new google.maps.places.PlacesService(map);
+    placesService.textSearch({
+      query: self.places_text(),
+      bounds: bounds
+    }, function(results, status) {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        createMarkersForPlaces(results);
+      }
+    });
+  };
 
 
 }
