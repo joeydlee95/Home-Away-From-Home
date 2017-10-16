@@ -176,10 +176,10 @@ function initMap() {
     });
   }
 
-  document.getElementById('show').addEventListener('click', showLoc);
-  document.getElementById('hide').addEventListener('click', function() {
-    hideMarkers(markers);
-  });
+  //document.getElementById('show').addEventListener('click', showLoc);
+  //document.getElementById('hide').addEventListener('click', function() {
+  //  hideMarkers(markers);
+  //});
 
   document.getElementById('toggle-drawing').addEventListener('click', function() {
     toggleDrawing(drawingManager);
@@ -282,18 +282,6 @@ function populateInfoWindow(marker, infowindow) {
     // Open infowindow on correct marker.
     infowindow.open(map, marker);
   }
-}
-
-
-function showLoc() {
-  var bounds = new google.maps.LatLngBounds();
-
-  // Extend boundaries and displays each marker.
-  for (var i = 0; i < markers.length; i++) {
-    markers[i].setMap(map);
-    bounds.extend(markers[i].position);
-  }
-  map.fitBounds(bounds);
 }
 
 
@@ -587,3 +575,24 @@ function getPlacesDetails(marker, infowindow) {
     }
   });
 }
+
+function AppViewModel() {
+  var self = this;
+
+  self.show = function () {
+    var bounds = new google.maps.LatLngBounds();
+
+    // Extend boundaries and displays each marker.
+    for (var i = 0; i < markers.length; i++) {
+      markers[i].setMap(map);
+      bounds.extend(markers[i].position);
+    }
+    map.fitBounds(bounds);
+  };
+
+  self.hide = function() {
+    hideMarkers(markers);
+  }
+}
+
+ko.applyBindings(new AppViewModel());
