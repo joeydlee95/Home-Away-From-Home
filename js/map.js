@@ -5,6 +5,31 @@ var markers = [];
 var polygon = null;
 
 var placeMarkers = [];
+var drawingManager;
+
+// Options Bindings
+var availableDurations = [
+  new Duration("10 min", 10),
+  new Duration("15 min", 15),
+  new Duration("30 min", 30),
+  new Duration("1 hour", 60)
+];
+
+var availableModes = [
+  new Mode("drive", "DRIVING"),
+  new Mode("walk", "WALKING"),
+  new Mode("bike", "BIKING"),
+  new Mode("transit ride", "TRANSIT")
+];
+
+// TODO: USE LAYERS for database
+var locations = [
+  {title: 'Space Needle', location: {lat:47.6205, lng: -122.3493}},
+  {title: 'University of Washington', location: {lat: 47.6553, lng: -122.3035}},
+  {title: 'Pike Place Market', location: {lat: 47.6101, lng: -122.3421}},
+  {title: 'Pochi Lifestyle', location: {lat: 47.8502, lng: -122.2503}},
+  {title: 'Gas Works', location: {lat: 47.6456, lng: -122.3344}}
+];
 
 
 // Initialize the map
@@ -116,19 +141,10 @@ function initMap() {
   // Bias the searchbox to within the bounds of the map.
   searchBox.setBounds(map.getBounds());
 
- // TODO: USE LAYERS for database
-  var locations = [
-    {title: 'Space Needle', location: {lat:47.6205, lng: -122.3493}},
-    {title: 'University of Washington', location: {lat: 47.6553, lng: -122.3035}},
-    {title: 'Pike Place Market', location: {lat: 47.6101, lng: -122.3421}},
-    {title: 'Pochi Lifestyle', location: {lat: 47.8502, lng: -122.2503}},
-    {title: 'Gas Works', location: {lat: 47.6456, lng: -122.3344}}
-  ];
-
   var largeInfowindow = new google.maps.InfoWindow();
 
   // Initialize the drawing manager
-  var drawingManager = new google.maps.drawing.DrawingManager({
+  drawingManager = new google.maps.drawing.DrawingManager({
     drawingMode: google.maps.drawing.OverlayType.POLYGON,
     drawingControl: true,
     drawingControlOptions: {
@@ -176,31 +192,11 @@ function initMap() {
     });
   }
 
-  document.getElementById('show').addEventListener('click', showLoc);
-  document.getElementById('hide').addEventListener('click', function() {
-    hideMarkers(markers);
-  });
-
-  document.getElementById('toggle-drawing').addEventListener('click', function() {
-    toggleDrawing(drawingManager);
-  });
-
-  document.getElementById('zoom-to-area').addEventListener('click', function() {
-    zoomToArea();
-  });
-
-  document.getElementById('search-within-time').addEventListener('click', function() {
-    searchWithinTime();
-  });
-
   // Listen for the event fired when the user selects a prediction from the
   // picklist and retrieve more details for that place.
   searchBox.addListener('places_changed', function() {
     searchBoxPlaces(this);
   });
-  // Listen for the event fired when the user selects a prediction and clicks
-  // "go" more details for that place.
-  document.getElementById('go-places').addEventListener('click', textSearchPlaces);
 
   drawingManager.addListener('overlaycomplete', function(event) {
     // Check if a polygon exists
@@ -285,35 +281,10 @@ function populateInfoWindow(marker, infowindow) {
 }
 
 
-function showLoc() {
-  var bounds = new google.maps.LatLngBounds();
-
-  // Extend boundaries and displays each marker.
-  for (var i = 0; i < markers.length; i++) {
-    markers[i].setMap(map);
-    bounds.extend(markers[i].position);
-  }
-  map.fitBounds(bounds);
-}
-
-
 // This function will loop through the listings and hide them all.
 function hideMarkers(markers) {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
-  }
-}
-
-
-function toggleDrawing(drawingManager) {
-  if (drawingManager.map) {
-    drawingManager.setMap(null);
-    // If user drew something, undo the drawing.
-    if (polygon) {
-      polygon.setMap(null);
-    }
-  } else {
-    drawingManager.setMap(map);
   }
 }
 
@@ -330,37 +301,9 @@ function searchWithinPolygon() {
 }
 
 
-function zoomToArea() {
-  // Initialize the geocoder.
-  var geocoder = new google.maps.Geocoder();
-
-  // Get the address from input.
-  var address = document.getElementById('zoom-to-area-text').value;
-
-  // Check for blank address.
-  if (address == '') {
-    window.alert('You must enter an address.');
-  } else {
-    geocoder.geocode(
-      {
-       address: address,
-       componentRestrictions: {locality: 'Seattle'},
-      }, function(result, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          map.setCenter(result[0].geometry.location);
-          map.setZoom(15);
-        } else {
-          window.alert('Could not find that location. Enter a more specific location.');
-        }
-      });
-  }
-}
-
-
-function searchWithinTime() {
+function searchWithinTime(address, duration, mode) {
   // Initialize distance matrix service
   var distanceMatrixService = new google.maps.DistanceMatrixService;
-  var address = document.getElementById('search-within-time-text').value;
 
   if (address == '') {
     window.alert('You must enter an address.');
@@ -372,7 +315,6 @@ function searchWithinTime() {
       origins[i] = markers[i].position;
     }
     var destination = address;
-    var mode = document.getElementById('mode').value;
     // Now that both the origins and destination are defined, get all the
     // info for the distances between them.
     distanceMatrixService.getDistanceMatrix({
@@ -384,7 +326,7 @@ function searchWithinTime() {
       if (status !== google.maps.DistanceMatrixStatus.OK) {
         window.alert('Error was: ' + status);
       } else {
-        displayMarkersWithinTime(response);
+        displayMarkersWithinTime(response, duration, mode, destination);
       }
     });
   }
@@ -393,8 +335,8 @@ function searchWithinTime() {
 
 // This function will go through each of the results, and,
 // if the distance is LESS than the value in the picker, show it on the map.
-function displayMarkersWithinTime(response) {
-  var maxDuration = document.getElementById('max-duration').value;
+function displayMarkersWithinTime(response, duration, mode, address) {
+  var maxDuration = duration;
   var origins = response.originAddresses;
   var destinations = response.destinationAddresses;
   // Parse through the results, and get the distance and duration of each.
@@ -423,7 +365,8 @@ function displayMarkersWithinTime(response) {
           var infowindow = new google.maps.InfoWindow({
             content: durationText + ' away, ' + distanceText +
               '<div><input type=\"button\" value=\"View Route\" onclick=' +
-              '\"displayDirections(&quot;' + origins[i] + '&quot;);\"></input></div>'
+              '\"displayDirections(&quot;' + origins[i] + '&quot;, &quot;' + 
+              mode + '&quot;, &quot;' + address + '&quot;);\"></input></div>'
           });
           infowindow.open(map, markers[i]);
           // Put this in so that this small window closes if the user clicks
@@ -442,14 +385,12 @@ function displayMarkersWithinTime(response) {
 }
 
 
-function displayDirections(origin) {
+function displayDirections(origin, mode, address) {
   hideMarkers(markers);
   var directionsService = new google.maps.DirectionsService;
   // Get the destination address from the user entered value.
-  var destinationAddress =
-      document.getElementById('search-within-time-text').value;
-  // Get mode again from the user entered value.
-  var mode = document.getElementById('mode').value;
+  var destinationAddress = address;
+
   directionsService.route({
     // The origin is the passed in marker's position.
     origin: origin,
@@ -472,6 +413,7 @@ function displayDirections(origin) {
   });
 }
 
+
 // This function fires when the user selects a searchbox picklist item.
 // It will do a nearby search using the selected query string or place.
 function searchBoxPlaces(searchBox) {
@@ -483,21 +425,8 @@ function searchBoxPlaces(searchBox) {
     window.alert('We did not find any places matching that search!');
   }
 }
-// This function firest when the user select "go" on the places search.
-// It will do a nearby search using the entered query string or place.
-function textSearchPlaces() {
-  var bounds = map.getBounds();
-  hideMarkers(placeMarkers);
-  var placesService = new google.maps.places.PlacesService(map);
-  placesService.textSearch({
-    query: document.getElementById('places-search').value,
-    bounds: bounds
-  }, function(results, status) {
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      createMarkersForPlaces(results);
-    }
-  });
-}
+
+
 // This function creates markers for each place found in either places search.
 function createMarkersForPlaces(places) {
   var bounds = new google.maps.LatLngBounds();
@@ -587,3 +516,107 @@ function getPlacesDetails(marker, infowindow) {
     }
   });
 }
+
+function Duration(timeString, timeVal) {
+  var self = this;
+  self.durationTime = ko.observable(timeString);
+  self.timeValue = ko.observable(timeVal);
+}
+
+function Mode(ride, rideMode) {
+  var self = this;
+  self.modeString = ko.observable(ride);
+  self.mode = ko.observable(rideMode);
+}
+
+function AppViewModel() {
+  var self = this;
+
+  // Option bindings.
+  self.selectedDuration = ko.observable(availableDurations[0]);
+  self.selectedMode = ko.observable(availableModes[0]);
+
+  // Text Bindings
+  self.zoom_text = ko.observable("");
+  self.search_text = ko.observable("");
+  self.places_text = ko.observable("");
+
+  // Click Bindings
+  self.show = function () {
+    var bounds = new google.maps.LatLngBounds();
+
+    // Extend boundaries and displays each marker.
+    for (var i = 0; i < markers.length; i++) {
+      markers[i].setMap(map);
+      bounds.extend(markers[i].position);
+    }
+    map.fitBounds(bounds);
+  };
+
+  self.hide = function() {
+    hideMarkers(markers);
+  }
+
+  self.draw = function() {
+    if (drawingManager.map) {
+      drawingManager.setMap(null);
+      // If user drew something, undo the drawing.
+      if (polygon) {
+        polygon.setMap(null);
+      }
+    } else {
+      drawingManager.setMap(map);
+    }
+  };
+
+  self.zoom = function() {
+    var address = self.zoom_text();
+    // Initialize the geocoder.
+    var geocoder = new google.maps.Geocoder();
+
+    // Get the address from input.
+    var address = self.zoom_text();
+
+    // Check for blank address.
+    if (address == '') {
+      window.alert('You must enter an address.');
+    } else {
+      geocoder.geocode(
+        {
+         address: address,
+         componentRestrictions: {locality: 'Seattle'},
+        }, function(result, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            map.setCenter(result[0].geometry.location);
+            map.setZoom(15);
+          } else {
+            window.alert('Could not find that location. Enter a more specific location.');
+          }
+        });
+    }
+  };
+
+  self.search = function() {
+    var address = self.search_text();
+    var maxDuration = self.selectedDuration().timeValue();
+    var methodOfTravel = self.selectedMode().mode();
+    searchWithinTime(address, maxDuration, methodOfTravel);
+  };
+
+  self.places = function() {
+    var bounds = map.getBounds();
+    hideMarkers(placeMarkers);
+    var placesService = new google.maps.places.PlacesService(map);
+    placesService.textSearch({
+      query: self.places_text(),
+      bounds: bounds
+    }, function(results, status) {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        createMarkersForPlaces(results);
+      }
+    });
+  };
+}
+
+
+ko.applyBindings(new AppViewModel());
