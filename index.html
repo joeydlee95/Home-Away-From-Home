@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
- <head>
- <!-- styles put here, but you can include a CSS file and reference it instead! -->
-   <link rel="stylesheet" type="text/css" href="css/styles.css">
- </head>
- <body>
+<head>
+  <!-- styles put here, but you can include a CSS file and reference it instead! -->
+  <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+<body>
   <div class="container">
     <div class="options-box">
       <h1>Home Away From Home</h1>
       <div>
-        <input id="show" type="button" value="Show">
-        <input id="hide" type="button" value="Hide">
+        <input id="show" type="button" value="Show" data-bind="click: show">
+        <input id="hide" type="button" value="Hide" data-bind="click: hide">
 
         <hr>
 
@@ -55,12 +55,12 @@
     <div id="map"></div>
   </div>
 
-   <script src="js/map.js">
-   </script>
+  <script src="bower_components/knockout/dist/knockout.js"></script>
+  <script src="js/map.js"></script>
 
-   <!--Load the JS API ASYNCHRONOUSLY below.-->
-   <script async defer 
-      src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
-   </script>
- </body>
+  <!--Load the JS API ASYNCHRONOUSLY below.-->
+  <script async defer 
+    src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
+  </script>
+</body>
 </html>
