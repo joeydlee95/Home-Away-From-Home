@@ -5,7 +5,14 @@ var markers = [];
 var polygon = null;
 
 var placeMarkers = [];
-var drawingManager;
+var drawingManager;  
+
+// Foursquare API data
+var url = 'https://api.foursquare.com/v2/venues/search';
+var CLIENT_ID = 'TLH5X52P2I1BLQ2Q0VK0YH52YCNBV0HD1LKLBZQWU55FOL4M';
+var CLIENT_SECRET = '1G20HS0BA5QHRZDECBHN5FFJTRJTIGO0V0XNPHGIO1M2ICXO';
+var version = "20170801";
+
 
 // Options Bindings
 var availableDurations = [
@@ -482,37 +489,60 @@ function getPlacesDetails(marker, infowindow) {
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       // Set the marker property on this infowindow so it isn't created again.
       infowindow.marker = marker;
-      var innerHTML = '<div>';
-      if (place.name) {
-        innerHTML += '<strong>' + place.name + '</strong>';
+      
+      if (marker.getPosition() && place.photos) {
+        var latlngPosition = marker.getPosition().lat() + ',' + marker.getPosition().lng();
+        var data = {
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          v: version,
+          ll: latlngPosition,
+          query: place.name,
+          intent: "match",
+          limit: 1
+        };
+
+        $.getJSON(url, data, function(result){
+          if (result.meta.code == 200) {
+            var innerHTML = '<div>';
+            if (place.name) {
+              innerHTML += '<strong>' + place.name + '</strong>';
+            }
+            if (place.formatted_address) {
+              innerHTML += '<br>' + place.formatted_address;
+            }
+            if (place.formatted_phone_number) {
+              innerHTML += '<br>' + place.formatted_phone_number;
+            }
+            if (place.opening_hours) {
+              innerHTML += '<br><br><strong>Hours:</strong><br>' +
+                  place.opening_hours.weekday_text[0] + '<br>' +
+                  place.opening_hours.weekday_text[1] + '<br>' +
+                  place.opening_hours.weekday_text[2] + '<br>' +
+                  place.opening_hours.weekday_text[3] + '<br>' +
+                  place.opening_hours.weekday_text[4] + '<br>' +
+                  place.opening_hours.weekday_text[5] + '<br>' +
+                  place.opening_hours.weekday_text[6];
+            }
+            var checkins = result.response.venues[0].stats.checkinsCount;
+            innerHTML += '<br><br><span><strong>Check-ins: </strong>' + checkins + '</span>';
+            innerHTML += '<br><br><img src="' + place.photos[0].getUrl(
+                  {maxHeight: 100, maxWidth: 200}) + '">'; 
+
+            innerHTML += '</div>';
+            infowindow.setContent(innerHTML);
+            infowindow.open(map, marker);
+            // Make sure the marker property is cleared if the infowindow is closed.
+            infowindow.addListener('closeclick', function() {
+              infowindow.marker = null;
+            });
+            
+          } else {
+            window.alert('Could not access foursquare.');
+          }
+        });
+
       }
-      if (place.formatted_address) {
-        innerHTML += '<br>' + place.formatted_address;
-      }
-      if (place.formatted_phone_number) {
-        innerHTML += '<br>' + place.formatted_phone_number;
-      }
-      if (place.opening_hours) {
-        innerHTML += '<br><br><strong>Hours:</strong><br>' +
-            place.opening_hours.weekday_text[0] + '<br>' +
-            place.opening_hours.weekday_text[1] + '<br>' +
-            place.opening_hours.weekday_text[2] + '<br>' +
-            place.opening_hours.weekday_text[3] + '<br>' +
-            place.opening_hours.weekday_text[4] + '<br>' +
-            place.opening_hours.weekday_text[5] + '<br>' +
-            place.opening_hours.weekday_text[6];
-      }
-      if (place.photos) {
-        innerHTML += '<br><br><img src="' + place.photos[0].getUrl(
-            {maxHeight: 100, maxWidth: 200}) + '">';
-      }
-      innerHTML += '</div>';
-      infowindow.setContent(innerHTML);
-      infowindow.open(map, marker);
-      // Make sure the marker property is cleared if the infowindow is closed.
-      infowindow.addListener('closeclick', function() {
-        infowindow.marker = null;
-      });
     }
   });
 }
