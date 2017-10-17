@@ -39,6 +39,48 @@ var locations = [
 ];
 
 
+function populateInfoWindow(marker, infowindow) {
+  // Check if infowindow is already open.
+  if (infowindow.marker != marker) {
+
+    // Clear the infowindow to give streetview time to load.
+    infowindow.setContent('');
+    infowindow.marker = marker;
+
+    // Make sure content is cleared when infowindow is closed.
+    infowindow.addListener('closeclick', function() {
+      infowindow.marker = null;
+    });
+
+    var streetViewService = new google.maps.StreetViewService();
+    var radius = 50;
+    
+    // Using API get closest streetview image within 50 meters
+    streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
+
+    // Open infowindow on correct marker.
+    infowindow.open(map, marker);
+  }
+}
+
+function addToMarkers(marker) {
+  // Add marker to the markers array.
+  markers.push(marker);
+
+  // Create an onclick event to open the large infowindow at each marker.
+  marker.addListener('click', function() {
+    populateInfoWindow(this, largeInfowindow);
+  });
+
+  marker.addListener('mouseover', function() {
+    this.setIcon(highlightedIcon);
+  });
+
+  marker.addListener('mouseout', function() {
+    this.setIcon(defaultIcon);
+  });
+}
+
 // Initialize the map
 function initMap() {
 
@@ -170,6 +212,7 @@ function initMap() {
   // Use locations array to create array of markers.
   for (var i = 0; i< locations.length; i++) {
     // Get position of location
+
     var position = locations[i].location;
     var title = locations[i].title;
 
@@ -182,21 +225,7 @@ function initMap() {
       id: i
     });
 
-    // Add marker to the markers array.
-    markers.push(marker);
-
-    // Create an onclick event to open the large infowindow at each marker.
-    marker.addListener('click', function() {
-      populateInfoWindow(this, largeInfowindow);
-    });
-
-    marker.addListener('mouseover', function() {
-      this.setIcon(highlightedIcon);
-    });
-
-    marker.addListener('mouseout', function() {
-      this.setIcon(defaultIcon);
-    });
+    addToMarkers(marker);
   }
 
   // Listen for the event fired when the user selects a prediction from the
@@ -209,7 +238,7 @@ function initMap() {
     // Check if a polygon exists
     if (polygon) {
       polygon.setMap(null);
-      hideMarkers(markers);;
+      hideMarkers(markers);
     }
 
     // Switch back to the hand after the polygon is made.
@@ -242,48 +271,24 @@ function makeMarkerIcon(markerColor) {
 }
 
 
-function populateInfoWindow(marker, infowindow) {
-  // Check if infowindow is already open.
-  if (infowindow.marker != marker) {
-
-    // Clear the infowindow to give streetview time to load.
-    infowindow.setContent('');
-    infowindow.marker = marker;
-
-    // Make sure content is cleared when infowindow is closed.
-    infowindow.addListener('closeclick', function() {
-      infowindow.marker = null;
-    });
-
-    var streetViewService = new google.maps.StreetViewService();
-    var radius = 50;
-
-    function getStreetView(data, status) {
-      if (status == google.maps.StreetViewStatus.OK) {
-        var nearStreetViewLocation = data.location.latLng;
-        var heading = google.maps.geometry.spherical.computeHeading(
-          nearStreetViewLocation, marker.position);
-        infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
-        var panoramaOptions = {
-          position: nearStreetViewLocation,
-          pov: {
-            heading: heading,
-            pitch: 30
-          }
-        };
-        var panorama = new google.maps.StreetViewPanorama(
-          document.getElementById('pano'), panoramaOptions);
-      } else {
-        infowindow.setContent('<div>' + marker.title + '</div>' +
-          '<div>No Street View Found</div>');
+function getStreetView(data, status) {
+  if (status == google.maps.StreetViewStatus.OK) {
+    var nearStreetViewLocation = data.location.latLng;
+    var heading = google.maps.geometry.spherical.computeHeading(
+      nearStreetViewLocation, marker.position);
+    infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
+    var panoramaOptions = {
+      position: nearStreetViewLocation,
+      pov: {
+        heading: heading,
+        pitch: 30
       }
-    }
-    
-    // Using API get closest streetview image within 50 meters
-    streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
-
-    // Open infowindow on correct marker.
-    infowindow.open(map, marker);
+    };
+    var panorama = new google.maps.StreetViewPanorama(
+      document.getElementById('pano'), panoramaOptions);
+  } else {
+    infowindow.setContent('<div>' + marker.title + '</div>' +
+      '<div>No Street View Found</div>');
   }
 }
 
@@ -310,9 +315,9 @@ function searchWithinPolygon() {
 
 function searchWithinTime(address, duration, mode) {
   // Initialize distance matrix service
-  var distanceMatrixService = new google.maps.DistanceMatrixService;
+  var distanceMatrixService = new google.maps.DistanceMatrixService();
 
-  if (address == '') {
+  if (address === '') {
     window.alert('You must enter an address.');
   } else {
     hideMarkers(markers);
@@ -361,9 +366,9 @@ function displayMarkersWithinTime(response, duration, mode, address) {
         var distanceText = element.distance.text;
         // Duration value is given in seconds so we make it MINUTES. We need both the value
         // and the text.
-        var duration = element.duration.value / 60;
+        var currentduration = element.duration.value / 60;
         var durationText = element.duration.text;
-        if (duration <= maxDuration) {
+        if (currentduration <= maxDuration) {
           //the origin [i] should = the markers[i]
           markers[i].setMap(map);
           atLeastOne = true;
@@ -394,7 +399,7 @@ function displayMarkersWithinTime(response, duration, mode, address) {
 
 function displayDirections(origin, mode, address) {
   hideMarkers(markers);
-  var directionsService = new google.maps.DirectionsService;
+  var directionsService = new google.maps.DirectionsService();
   // Get the destination address from the user entered value.
   var destinationAddress = address;
 
@@ -428,8 +433,29 @@ function searchBoxPlaces(searchBox) {
   var places = searchBox.getPlaces();
   // For each place, get the icon, name and location.
   createMarkersForPlaces(places);
-  if (places.length == 0) {
+  if (places.length === 0) {
     window.alert('We did not find any places matching that search!');
+  }
+}
+
+function customizeMarkersForPlaces(bound, place, marker) {
+  // Infowindow with place detail.
+  var placeInfoWindow = new google.maps.InfoWindow();
+
+  // If a marker is clicked, do a place details search on it.
+  marker.addListener('click', function() {
+    if (placeInfoWindow.marker == this) {
+      console.log("This infowindow is already opened.");
+    } else {
+      getPlacesDetails(this, placeInfoWindow);
+    }
+  });
+  placeMarkers.push(marker);
+  if (place.geometry.viewport) {
+    // Only geocodes have viewport.
+    bound.union(place.geometry.viewport);
+  } else {
+    bound.extend(place.geometry.location);
   }
 }
 
@@ -455,24 +481,7 @@ function createMarkersForPlaces(places) {
       id: place.place_id
     });
 
-    // Infowindow with place detail.
-    var placeInfoWindow = new google.maps.InfoWindow();
-
-    // If a marker is clicked, do a place details search on it.
-    marker.addListener('click', function() {
-      if (placeInfoWindow.marker == this) {
-        console.log("This infowindow is already opened.");
-      } else {
-        getPlacesDetails(this, placeInfoWindow);
-      }
-    });
-    placeMarkers.push(marker);
-    if (place.geometry.viewport) {
-      // Only geocodes have viewport.
-      bounds.union(place.geometry.viewport);
-    } else {
-      bounds.extend(place.geometry.location);
-    }
+    customizeMarkersForPlaces(bounds, place, marker);
   }
   map.fitBounds(bounds);
 }
@@ -585,7 +594,7 @@ function AppViewModel() {
 
   self.hide = function() {
     hideMarkers(markers);
-  }
+  };
 
   self.draw = function() {
     if (drawingManager.map) {
@@ -604,11 +613,8 @@ function AppViewModel() {
     // Initialize the geocoder.
     var geocoder = new google.maps.Geocoder();
 
-    // Get the address from input.
-    var address = self.zoom_text();
-
     // Check for blank address.
-    if (address == '') {
+    if (address === '') {
       window.alert('You must enter an address.');
     } else {
       geocoder.geocode(
