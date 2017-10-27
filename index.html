@@ -2,54 +2,24 @@
 <html>
 <head>
   <!-- styles put here, but you can include a CSS file and reference it instead! -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="css/styles.css">
 </head>
 <body>
-  <div class="container">
-    <div class="options-box">
-      <h1>Home Away From Home</h1>
-      <div>
-        <input id="show" type="button" value="Show" data-bind="click: show">
-        <input id="hide" type="button" value="Hide" data-bind="click: hide">
-
-        <hr>
-
-        <div>
-          <h1> Draw a shape to see if there is something to visit there! </h1>
-          <input id="toggle-drawing" type="button" value="Drawing Tools" data-bind="click: draw">
+  <header>
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Travel To Seattle</a>
+        <div class="show-hide">
+          <button type="button" class="btn btn-info" data-bind="click: show">Reset</button>
+          <button type="button" class="btn btn-info" data-bind="click: hide">Hide</button>
         </div>
-
-        <div>
-          <input id="zoom-to-area-text" type="text" placeholder="Choose a region!" data-bind="value: zoom_text">
-          <input id="zoom-to-area" type="button" value="Zoom" data-bind="click: zoom">
-        </div>
-
-        <hr>
-        
-        <div>
-          <h1>Locations nearby this waypoint!</h1>
-          <span class="text"> Within </span>
-          <select id="max-duration" data-bind="options: availableDurations, optionsText: 'durationTime', value: selectedDuration"></select>
-          <select id="mode" data-bind="options: availableModes, optionsText:'modeString', value: selectedMode"></select>
-          <span class="text">of</span>
-          <input id="search-within-time-text" type="text" placeholder="Ex: Amazon Headquarters or 410 Terry Ave. North Seattle, WA" data-bind="value: search_text">
-          <input id="search-within-time" type="button" value="Go" data-bind="click: search">
-        </div>
-
-        <hr>
-        <div>
-          <h1>Search for nearby places (cafes, restaurants, etc)</h1>
-          <input id="places-search" type="text" placeholder="Ex: Pizza delivery in Seattle" data-bind="value: places_text">
-          <input id="go-places" type="button" value="Go" data-bind="click: places">
-        </div>
-      
-        <div id="foursquare-results"></div>
       </div>
-    </div>
-    <!--Create a place to put the map in the HTML-->
-    <div id="map"></div>
-  </div>
-
+    </nav>
+  </header>
+  
+  <div id="map"></div>
+  
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="bower_components/knockout/dist/knockout.js"></script>
   <script src="js/map.js"></script>
