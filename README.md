@@ -1,16 +1,15 @@
 # Let's Go Somewhere
 
 ## Introduction
-This is a single page application utilizing Google Map APIs. It features a map of Seattle, and a few locations. 
+This is an application utilizing Google Map APIs and Foursquare API of tourist places to go in Seattle.
 
 Some of the functionalities include: 
-- View or hide these locations.
--
+- View or hide these locations/markers.
+- View infowindows by clicking markers on the map.
 
 ## Features
 Clicking a location 
-  * Opens a window/panel easy to view
-  * Contains name of the place, pictures that you can scroll through, and addition website for more data.
+  * Opens an infowindow with data retrieved through AJAX calls with the Foursquare API. It contains information such as the location, phone number, website, and a photo of the place.
 
 
 ## How to run
@@ -23,6 +22,10 @@ Clicking a location
 - Data layer for locations
 - Ability to add/remove locations
 - Search Function
+- able to see more photos
+
+## Bugs
+- Adds more and more pictures when you search a place and click search
 
 ## Sources
 http://api.jquery.com/jquery.getjson/
