@@ -5,6 +5,12 @@ This is a single page application utilizing Google Map APIs. It features a map o
 
 Some of the functionalities include: 
 - View or hide these locations.
+-
+
+## Features
+Clicking a location 
+  * Opens a window/panel easy to view
+  * Contains name of the place, pictures that you can scroll through, and addition website for more data.
 
 
 ## How to run
@@ -19,5 +25,5 @@ Some of the functionalities include:
 - Search Function
 
 ## Sources
-https://stackoverflow.com/questions/10209704/set-google-maps-container-div-width-and-height-100
-- Used to make map fit onto screen
+http://api.jquery.com/jquery.getjson/
+  - Assigning ajax callback handlers.
