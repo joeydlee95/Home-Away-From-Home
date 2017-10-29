@@ -1,4 +1,5 @@
-# Let's Go Somewhere
+# Trip Travel App
+## Going to Seattle
 
 ## Introduction
 This is an application utilizing Google Map APIs and Foursquare API of tourist places to go in Seattle.
@@ -14,7 +15,7 @@ Clicking a location
 
 
 ## How to run
-1. git clone https://github.com/joeydlee95/Home-Away-From-Home
+1. git clone https://github.com/joeydlee95/trip-travel
 2. Using your favorite browser, open index.html.
 3. That's IT!
 
