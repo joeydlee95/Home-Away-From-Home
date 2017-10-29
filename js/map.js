@@ -73,7 +73,7 @@ function searchPlaceCallback(result, marker, infowindow) {
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
       v: version
-    }
+    };
 
     var jsonHandler = $.getJSON(photoURL, data, function(dataRes) {
       insertPhotoCallback(dataRes);
@@ -160,7 +160,7 @@ function selectMarker(markerTitle) {
       hideMarkers(markers);
       markers[i].setMap(map);
       var offsetLat = {lat: markers[i].position.lat() + 0.025, lng: markers[i].position.lng()};
-      map.setCenter(offsetLat)
+      map.setCenter(offsetLat);
       found = true;
 
 
@@ -319,9 +319,9 @@ function initMap() {
   var bounds = new google.maps.LatLngBounds();
 
   // Extend boundaries and displays each marker.
-  for (var i = 0; i < markers.length; i++) {
-    markers[i].setMap(map);
-    bounds.extend(markers[i].position);
+  for (var j = 0; j < markers.length; j++) {
+    markers[j].setMap(map);
+    bounds.extend(markers[j].position);
   }
   map.fitBounds(bounds);
 }
