@@ -6,6 +6,7 @@ This is an application utilizing Google Map APIs and Foursquare API of tourist p
 Some of the functionalities include: 
 - View or hide these locations/markers.
 - View infowindows by clicking markers on the map.
+- Filter to view a selection of these locations
 
 ## Features
 Clicking a location 
@@ -21,8 +22,9 @@ Clicking a location
 ## Improvements to come:
 - Data layer for locations
 - Ability to add/remove locations
-- Search Function
-- able to see more photos
+- Scrollable filter
+- able to see more photos(scrollable)
+- Better centering between devices
 
 ## Bugs
 - Adds more and more pictures when you search a place and click search
