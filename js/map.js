@@ -7,14 +7,107 @@ var currentInfowindow;
 var defaultIcon;
 var highlightedIcon;
 
+// Foursquare API data
+var foursquareAPI = 'https://api.foursquare.com/v2/venues/search';
+var CLIENT_ID = 'TLH5X52P2I1BLQ2Q0VK0YH52YCNBV0HD1LKLBZQWU55FOL4M';
+var CLIENT_SECRET = '1G20HS0BA5QHRZDECBHN5FFJTRJTIGO0V0XNPHGIO1M2ICXO';
+var version = "20170801";
+
+function insertPhotoCallback(result) {
+  if (result.meta.code != 200) {
+    console.log("Failed to complete getting photos. ERROR: " + result.meta.code);
+  } else {
+    // Checks if there are photos.
+    console.log("getting photos")
+    if (result.response.photos.count >= 1) {
+      var elem = document.createElement("img");
+      elem.src = result.response.photos.items[0].prefix + 'height200' +
+                 result.response.photos.items[0].suffix;
+      document.getElementById("photogallery").appendChild(elem);
+      console.log("added photos");
+    }
+    console.log("finished adding photos");
+    // TODO: No photo photo input
+  }
+  console.log("finished callback");
+}
+// This is the PLACE DETAILS search - it's the most detailed so it's only
+// executed when a marker is selected, indicating the user wants more
+// details about that place.
+function searchPlaceCallback(result, marker, infowindow) {
+  if (result.meta.code != 200) {
+    console.log("Failed to complete search. ERROR: " + result.meta.code);
+  } else {
+    currentMarker = marker;
+    currentInfowindow = infowindow;
+    var innerHTML = '<div>';
+    innerHTML += '<strong>' + marker.title + '</strong>';
+    
+    if (result.response.venues[0].contact.formattedPhone) {
+      innerHTML += '<br>' + result.response.venues[0].contact.formattedPhone;
+    }
+    if (result.response.venues[0].location.formattedAddress) {
+      innerHTML += '<br>' + result.response.venues[0].location.formattedAddress;
+    }
+
+    if (result.response.venues[0].url) {
+      innerHTML += '<br><a href="' + result.response.venues[0].url + '">Website</a>';
+    }
+
+    innerHTML += '</div>';
+    var displayHTML = '</div><div id="photogallery"></div>';
+
+    currentInfowindow.setContent(innerHTML + displayHTML);
+
+    var photoURL = 'https://api.foursquare.com/v2/venues/' +
+                   result.response.venues[0].id +
+                   '/photos';
+    var data = {
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      v: version
+    }
+
+    var jsonHandler = $.getJSON(photoURL, data, function(dataRes) {
+      insertPhotoCallback(dataRes);
+    })
+      .fail(function() {
+        console.log( "Error attempting photo AJAX call to Foursquare." );
+      });
+
+
+    infowindow.open(map, currentMarker);
+  }
+}
+
+function getPlacesDetails(marker, infowindow) {
+  var latlng = marker.position.lat() + ',' + marker.position.lng();
+  var data = {
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    v: version,
+    ll: latlng,
+    intent: "match",
+    limit: 1,
+    query: marker.title
+  };
+
+  map.setCenter(marker.position);
+  var jqxhr = $.getJSON(foursquareAPI, data, function(result) {
+    searchPlaceCallback(result, marker, infowindow);
+  })
+    .fail(function() {
+      console.log( "Error attempting AJAX call to Foursquare." );
+    });
+}
+
 // TODO: USE LAYERS for database
 var locations = [
   {title: 'Space Needle', location: {lat:47.6205, lng: -122.3493}},
-  {title: 'University of Washington', location: {lat: 47.6553, lng: -122.3035}},
+  {title: 'Smith Tower', location: {lat: 47.6034317, lng: -122.3317931}},
   {title: 'Pike Place Market', location: {lat: 47.6101, lng: -122.3421}},
   {title: 'Gas Works', location: {lat: 47.6456, lng: -122.3344}},
-  {title: 'Puget Sound', location: {lat: 47.7237, lng: -122.4713}},
-  {title: 'Experience Music Project Museum', location: {lat: 47.6215, lng: -122.3481}}
+  {title: 'Seattle Aquarium', location: {lat: 47.6076966, lng: -122.3431277}}
 ];
 
 // Create marker colors
@@ -60,7 +153,6 @@ function populateInfoWindow(marker, infowindow) {
   // Check if infowindow is already open.
   if (infowindow.marker != marker) {
 
-    // Clear the infowindow to give streetview time to load.
     infowindow.setContent('');
     infowindow.marker = marker;
 
@@ -69,17 +161,11 @@ function populateInfoWindow(marker, infowindow) {
       infowindow.marker = null;
     });
 
-    var streetViewService = new google.maps.StreetViewService();
-    var radius = 50;
-    
-    // Using API get closest streetview image within 50 meters
     currentMarker = marker;
     currentInfowindow = infowindow;
-    //streetViewService.getPanoramaByLocation(currentMarker.position, radius, getStreetView);
-    currentInfowindow.setContent('<div>' + currentMarker.title + '</div><div id="pano"></div>');
 
-    // Open infowindow on correct marker.
-    currentInfowindow.open(map, currentMarker);
+    // If a marker is clicked, do a place details search on it.
+    getPlacesDetails(currentMarker, currentInfowindow);
   }
 }
 
@@ -212,8 +298,6 @@ function initMap() {
 
 function AppViewModel() {
   var self = this;
-
-
 
   // Click Bindings
   self.show = function () {
