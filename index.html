@@ -8,39 +8,46 @@
 <body>
 
   <header>
-    
     <nav class="navbar navbar-dark bg-dark">
-    
-        <div class="navbar-header">
-          <a class="navbar-brand" href="#">Travel to Seattle</a>
-        </div>
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Travel to Seattle</a>
+      </div>
   
-        <div class="show-hide">
-          <button type="button" class="btn btn-info" data-bind="click: reset">Reset</button>
-          <button type="button" class="btn btn-info" data-bind="click: hide">Hide</button>
-        </div>
+      <div class="show-hide">
+        <button type="button" class="btn btn-secondary" data-bind="click: reset">Reset</button>
+        <button type="button" class="btn btn-secondary" data-bind="click: hide">Hide</button>
       </div>
     </nav>
+  </header>
 
-    <nav class="navbar navbar-light bg-faded">
-        <form class="form-inline">
-          <input class="form-control mr-sm-2" type="text" placeholder="Search" data-bind="value: search_text">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit" data-bind="click: search">Search</button>
-        </form>
-        <p>Filter: <input type="checkbox" data-bind="checked: wantsFilter" /></p>
-        <div data-bind="visible: wantsFilter">
-            Preferred locations:
-            <div><input type="checkbox" value="spaceNeedle" data-bind="checked: locations, click: updateLocations" /> Space Needle</div>
-            <div><input type="checkbox" value="smithTower" data-bind="checked: locations, click: updateLocations" /> Smith Tower</div>
-            <div><input type="checkbox" value="pikePlaceMarket" data-bind="checked: locations, click: updateLocations" /> Pike Place Market</div>
-            <div><input type="checkbox" value="gasWorks" data-bind="checked: locations, click: updateLocations" /> Gas Works</div>
-            <div><input type="checkbox" value="seattleAquarium" data-bind="checked: locations, click: updateLocations" /> Seattle Aquarium</div>
+  <main>
+    <div id="map"></div>
+    
+    <div class="row">
+      <div class="p-3 mb-2 bg-secondary text-white menu">
+        <div class="container">
+          <div class="search">
+            <form class="form-inline">
+              <input class="form-control" type="text" placeholder="Search" data-bind="value: search_text">
+              <button class="btn" type="submit" data-bind="click: search">Search</button>
+            </form>
+          </div>
+
+          <div class="filter">
+            <p>Filter: <input type="checkbox" data-bind="checked: wantsFilter" /></p>
+            <div data-bind="visible: wantsFilter">
+              Preferred locations:
+              <div><input type="checkbox" value="spaceNeedle" data-bind="checked: locations, click: updateLocations" /> Space Needle</div>
+              <div><input type="checkbox" value="smithTower" data-bind="checked: locations, click: updateLocations" /> Smith Tower</div>
+              <div><input type="checkbox" value="pikePlaceMarket" data-bind="checked: locations, click: updateLocations" /> Pike Place Market</div>
+              <div><input type="checkbox" value="gasWorks" data-bind="checked: locations, click: updateLocations" /> Gas Works</div>
+              <div><input type="checkbox" value="seattleAquarium" data-bind="checked: locations, click: updateLocations" /> Seattle Aquarium</div>
+            </div>
+          </div>
         </div>
-         
-    </nav>
-  </header> 
-
-  <div id="map"></div>
+      </div>
+    </div>
+  </main>
   
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="bower_components/knockout/dist/knockout.js"></script>

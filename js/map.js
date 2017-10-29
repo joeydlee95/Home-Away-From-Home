@@ -99,7 +99,8 @@ function getPlacesDetails(marker, infowindow) {
     query: marker.title
   };
 
-  map.setCenter(marker.position);
+  var offsetLat = {lat: marker.position.lat() + 0.025, lng: marker.position.lng()};
+  map.setCenter(offsetLat);
   var jqxhr = $.getJSON(foursquareAPI, data, function(result) {
     searchPlaceCallback(result, marker, infowindow);
   })
@@ -158,7 +159,8 @@ function selectMarker(markerTitle) {
     if (markerTitle === markers[i].title.toLowerCase()) {
       hideMarkers(markers);
       markers[i].setMap(map);
-      map.setCenter(markers[i].position)
+      var offsetLat = {lat: markers[i].position.lat() + 0.025, lng: markers[i].position.lng()};
+      map.setCenter(offsetLat)
       found = true;
 
 
