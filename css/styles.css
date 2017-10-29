@@ -16,3 +16,7 @@ header {
   left: 0; 
   z-index: 0;
 }
+
+#photogallery {
+  text-align: center;
+}

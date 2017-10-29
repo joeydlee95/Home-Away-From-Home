@@ -13,24 +13,31 @@ var CLIENT_ID = 'TLH5X52P2I1BLQ2Q0VK0YH52YCNBV0HD1LKLBZQWU55FOL4M';
 var CLIENT_SECRET = '1G20HS0BA5QHRZDECBHN5FFJTRJTIGO0V0XNPHGIO1M2ICXO';
 var version = "20170801";
 
+// TODO: USE LAYERS for database
+var locations = [
+  {title: 'Space Needle', location: {lat:47.6205, lng: -122.3493}},
+  {title: 'Smith Tower', location: {lat: 47.6034317, lng: -122.3317931}},
+  {title: 'Pike Place Market', location: {lat: 47.6101, lng: -122.3421}},
+  {title: 'Gas Works', location: {lat: 47.6456, lng: -122.3344}},
+  {title: 'Seattle Aquarium', location: {lat: 47.6076966, lng: -122.3431277}}
+];
+
 function insertPhotoCallback(result) {
   if (result.meta.code != 200) {
     console.log("Failed to complete getting photos. ERROR: " + result.meta.code);
   } else {
     // Checks if there are photos.
-    console.log("getting photos")
+    //TODO: Some kind of data structure storage to hold multiple urls
     if (result.response.photos.count >= 1) {
       var elem = document.createElement("img");
       elem.src = result.response.photos.items[0].prefix + 'height200' +
                  result.response.photos.items[0].suffix;
       document.getElementById("photogallery").appendChild(elem);
-      console.log("added photos");
     }
-    console.log("finished adding photos");
     // TODO: No photo photo input
   }
-  console.log("finished callback");
 }
+
 // This is the PLACE DETAILS search - it's the most detailed so it's only
 // executed when a marker is selected, indicating the user wants more
 // details about that place.
@@ -101,15 +108,6 @@ function getPlacesDetails(marker, infowindow) {
     });
 }
 
-// TODO: USE LAYERS for database
-var locations = [
-  {title: 'Space Needle', location: {lat:47.6205, lng: -122.3493}},
-  {title: 'Smith Tower', location: {lat: 47.6034317, lng: -122.3317931}},
-  {title: 'Pike Place Market', location: {lat: 47.6101, lng: -122.3421}},
-  {title: 'Gas Works', location: {lat: 47.6456, lng: -122.3344}},
-  {title: 'Seattle Aquarium', location: {lat: 47.6076966, lng: -122.3431277}}
-];
-
 // Create marker colors
 function makeMarkerIcon(markerColor) {
   var markerImage = new google.maps.MarkerImage(
@@ -149,10 +147,38 @@ function hideMarkers(markers) {
   }
 }
 
+function selectMarker(markerTitle) {
+  //TODO: AutoComplete
+  //TODO: Recommendations
+  //TODO: Allow for incomplete searches
+  var found = false;
+  var largeInfowindow = new google.maps.InfoWindow();
+
+  for (var i = 0; i < markers.length; i++) {
+    if (markerTitle === markers[i].title.toLowerCase()) {
+      hideMarkers(markers);
+      markers[i].setMap(map);
+      map.setCenter(markers[i].position)
+      found = true;
+
+
+      // TODO: more efficient should exist
+      if (currentInfowindow)
+        currentInfowindow.setMap(null);
+      populateInfoWindow(markers[i], largeInfowindow);
+
+      break;
+    }
+  }
+
+  if (!found) {
+    window.alert("Query for specified location has failed, try again.");
+  }
+}
+
 function populateInfoWindow(marker, infowindow) {
   // Check if infowindow is already open.
   if (infowindow.marker != marker) {
-
     infowindow.setContent('');
     infowindow.marker = marker;
 
@@ -166,6 +192,8 @@ function populateInfoWindow(marker, infowindow) {
 
     // If a marker is clicked, do a place details search on it.
     getPlacesDetails(currentMarker, currentInfowindow);
+  } else {
+    infowindow.setMap(map);
   }
 }
 
@@ -298,11 +326,21 @@ function initMap() {
 
 function AppViewModel() {
   var self = this;
+  self.wantsFilter = ko.observable(false);
+  self.locations = ko.observableArray(['spaceNeedle', 'smithTower', 'pikePlaceMarket', 
+                                                'gasWorks', 'seattleAquarium']);
+  // Text Bindings
+  self.search_text = ko.observable("");
+
 
   // Click Bindings
-  self.show = function () {
-    var bounds = new google.maps.LatLngBounds();
+  self.reset = function () {
+    // Resets the infowindow
+    if(currentInfowindow) {
+      currentInfowindow.setMap(null);
+    }
 
+    var bounds = new google.maps.LatLngBounds();
     // Extend boundaries and displays each marker.
     for (var i = 0; i < markers.length; i++) {
       markers[i].setMap(map);
@@ -314,6 +352,29 @@ function AppViewModel() {
   self.hide = function() {
     hideMarkers(markers);
   };
+
+  self.search = function() {
+    var searchValue = self.search_text().toString().toLowerCase();
+    selectMarker(searchValue);
+  };
+
+  self.updateLocations = function() {
+     // Resets the infowindow
+    if(currentInfowindow) {
+      currentInfowindow.setMap(null);
+    }
+    hideMarkers(markers);
+    //TODO: should work but is not good coding style
+    // Extend boundaries and displays each marker.
+    for (var i = 0; i < markers.length; i++) {
+      console.log(self.locations()[i]);
+      if(self.locations()[i]) {
+        markers[i].setMap(map);
+      }
+    }
+    return true;
+  };
+
 }
 
 ko.applyBindings(new AppViewModel());
