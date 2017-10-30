@@ -12,6 +12,9 @@ Some of the functionalities include:
 ## Features
 Clicking a location 
   * Opens an infowindow with data retrieved through AJAX calls with the Foursquare API. It contains information such as the location, phone number, website, and a photo of the place.
+Filtering
+  * Clicking on the checkbox next to the location name will toggle them visible on the map.
+  * Clicking on the location names on the filter will select that particular location and open its infowindow.
 
 
 ## How to run
@@ -33,3 +36,5 @@ Clicking a location
 ## Sources
 http://api.jquery.com/jquery.getjson/
   - Assigning ajax callback handlers.
+https://codepen.io/anon/pen/gXbmLY
+  - Example for bad Google Map loading error handling.

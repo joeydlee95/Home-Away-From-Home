@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Seattle Trip</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- styles put here, but you can include a CSS file and reference it instead! -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
@@ -36,13 +38,8 @@
 
           <div class="filter">
             <p>Filter: <input type="checkbox" data-bind="checked: wantsFilter" /></p>
-            <div data-bind="visible: wantsFilter">
-              Preferred locations:
-              <div><input type="checkbox" value="spaceNeedle" data-bind="checked: locations, click: updateLocations" /> Space Needle</div>
-              <div><input type="checkbox" value="smithTower" data-bind="checked: locations, click: updateLocations" /> Smith Tower</div>
-              <div><input type="checkbox" value="pikePlaceMarket" data-bind="checked: locations, click: updateLocations" /> Pike Place Market</div>
-              <div><input type="checkbox" value="gasWorks" data-bind="checked: locations, click: updateLocations" /> Gas Works</div>
-              <div><input type="checkbox" value="seattleAquarium" data-bind="checked: locations, click: updateLocations" /> Seattle Aquarium</div>
+            <div class="container" data-bind="visible: wantsFilter, foreach: { data: locations, as: 'location' }">
+              <div><input type="checkbox" data-bind="checked: location, click: $parent.toggleShow" /><span data-bind="text: location, click: $parent.select"></div>
             </div>
           </div>
         </div>
@@ -56,7 +53,7 @@
 
   <!--Load the JS API ASYNCHRONOUSLY below.-->
   <script async defer 
-    src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyAe5AHbov2Doz0riVatzXN7XW-XBfPWGpw&v=3&callback=initMap" onerror="mapError()">
   </script>
 </body>
 </html>

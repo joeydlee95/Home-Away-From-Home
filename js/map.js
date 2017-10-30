@@ -22,25 +22,27 @@ var locations = [
   {title: 'Seattle Aquarium', location: {lat: 47.6076966, lng: -122.3431277}}
 ];
 
-function insertPhotoCallback(result) {
-  if (result.meta.code != 200) {
-    console.log("Failed to complete getting photos. ERROR: " + result.meta.code);
-  } else {
-    // Checks if there are photos.
-    //TODO: Some kind of data structure storage to hold multiple urls
-    if (result.response.photos.count >= 1) {
-      var elem = document.createElement("img");
-      elem.src = result.response.photos.items[0].prefix + 'height200' +
-                 result.response.photos.items[0].suffix;
-      document.getElementById("photogallery").appendChild(elem);
+///////////////////////////////
+///// Helper Methods //////////
+///////////////////////////////
+function clean() {
+  // Clear infowindows
+  if(currentInfowindow) {
+    currentInfowindow.setMap(null);
+  }
+
+  // Get rid of highlight on markers
+  for (var i = 0; i < markers.length; i++) {
+    if (markers[i].getIcon() !== defaultIcon) {
+      markers[i].setIcon(defaultIcon);
     }
-    // TODO: No photo photo input
   }
 }
 
-// This is the PLACE DETAILS search - it's the most detailed so it's only
-// executed when a marker is selected, indicating the user wants more
-// details about that place.
+
+///////////////////////////////
+///// Infowindow Content //////
+///////////////////////////////
 function searchPlaceCallback(result, marker, infowindow) {
   if (result.meta.code != 200) {
     console.log("Failed to complete search. ERROR: " + result.meta.code);
@@ -62,9 +64,7 @@ function searchPlaceCallback(result, marker, infowindow) {
     }
 
     innerHTML += '</div>';
-    var displayHTML = '</div><div id="photogallery"></div>';
-
-    currentInfowindow.setContent(innerHTML + displayHTML);
+    var displayHTML = '<div id="photogallery">';
 
     var photoURL = 'https://api.foursquare.com/v2/venues/' +
                    result.response.venues[0].id +
@@ -76,14 +76,29 @@ function searchPlaceCallback(result, marker, infowindow) {
     };
 
     var jsonHandler = $.getJSON(photoURL, data, function(dataRes) {
-      insertPhotoCallback(dataRes);
+
+      if (dataRes.meta.code != 200) {
+        console.log("Failed to complete getting photos. ERROR: " + dataRes.meta.code);
+      } else {
+        // Checks if there are photos.
+        //TODO: Some kind of data structure storage to hold multiple urls
+        if (dataRes.response.photos.count >= 1) {
+          displayHTML += '<img src="'
+          displayHTML += dataRes.response.photos.items[0].prefix;
+          displayHTML += 'height200';
+          displayHTML += dataRes.response.photos.items[0].suffix;
+          displayHTML += '" alt="Picture of location">'
+        } 
+        // TODO: No photo photo input
+      }
+      displayHTML += '</div>';
+      currentInfowindow.setContent(innerHTML + displayHTML);
+      infowindow.open(map, currentMarker);
     })
       .fail(function() {
         console.log( "Error attempting photo AJAX call to Foursquare." );
+        window.alert("Check for internet connection errors. Trying to get location data from Foursquare.");
       });
-
-
-    infowindow.open(map, currentMarker);
   }
 }
 
@@ -106,10 +121,35 @@ function getPlacesDetails(marker, infowindow) {
   })
     .fail(function() {
       console.log( "Error attempting AJAX call to Foursquare." );
+      window.alert("Check for internet connection errors. Trying to get location data from Foursquare.");
     });
 }
 
-// Create marker colors
+function populateInfoWindow(marker, infowindow) {
+  // Check if infowindow is already open.
+  if (infowindow.marker != marker) {
+    infowindow.setContent('');
+    infowindow.marker = marker;
+
+    // Make sure content is cleared when infowindow is closed.
+    infowindow.addListener('closeclick', function() {
+      infowindow.marker = null;
+    });
+
+    currentMarker = marker;
+    currentInfowindow = infowindow;
+
+    // If a marker is clicked, do a place details search on it.
+    getPlacesDetails(currentMarker, currentInfowindow);
+  } else {
+    infowindow.setMap(map);
+  }
+}
+
+
+///////////////////////////////
+///// Marker Properties ///////
+///////////////////////////////
 function makeMarkerIcon(markerColor) {
   var markerImage = new google.maps.MarkerImage(
     'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor +
@@ -121,7 +161,6 @@ function makeMarkerIcon(markerColor) {
   return markerImage;
 }
 
-
 // Add locations to markers array
 function addToMarkers(marker, infowindow) {
   // Add marker to the markers array.
@@ -130,6 +169,8 @@ function addToMarkers(marker, infowindow) {
   // Create an onclick event to open the large infowindow at each marker.
   marker.addListener('click', function() {
     populateInfoWindow(marker, infowindow);
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(function() { marker.setAnimation(null); }, 1000);
   });
   
 
@@ -157,16 +198,13 @@ function selectMarker(markerTitle) {
 
   for (var i = 0; i < markers.length; i++) {
     if (markerTitle === markers[i].title.toLowerCase()) {
-      hideMarkers(markers);
       markers[i].setMap(map);
       var offsetLat = {lat: markers[i].position.lat() + 0.025, lng: markers[i].position.lng()};
       map.setCenter(offsetLat);
       found = true;
 
 
-      // TODO: more efficient should exist
-      if (currentInfowindow)
-        currentInfowindow.setMap(null);
+      clean();
       populateInfoWindow(markers[i], largeInfowindow);
 
       break;
@@ -178,28 +216,9 @@ function selectMarker(markerTitle) {
   }
 }
 
-function populateInfoWindow(marker, infowindow) {
-  // Check if infowindow is already open.
-  if (infowindow.marker != marker) {
-    infowindow.setContent('');
-    infowindow.marker = marker;
-
-    // Make sure content is cleared when infowindow is closed.
-    infowindow.addListener('closeclick', function() {
-      infowindow.marker = null;
-    });
-
-    currentMarker = marker;
-    currentInfowindow = infowindow;
-
-    // If a marker is clicked, do a place details search on it.
-    getPlacesDetails(currentMarker, currentInfowindow);
-  } else {
-    infowindow.setMap(map);
-  }
-}
-
-// Initialize the map
+///////////////////////////////
+///// Map Initialization //////
+///////////////////////////////
 function initMap() {
 
   // Custom styling
@@ -287,7 +306,7 @@ function initMap() {
   // Constructor to create new JS object
   map = new google.maps.Map(document.getElementById('map'), {
     center: {lat: 47.6062, lng: -122.3321},
-    zoom: 10,
+    zoom: 12,
     styles: styles,
     mapTypeControl: false
   });
@@ -323,29 +342,40 @@ function initMap() {
     markers[j].setMap(map);
     bounds.extend(markers[j].position);
   }
-  map.fitBounds(bounds);
+  google.maps.event.addDomListener(window, 'resize', function() {
+    map.fitBounds(bounds); // `bounds` is a `LatLngBounds` object
+  });
 }
 
+mapError = () => {
+  // Error handling
+  window.alert("Could not load the Google Maps. Sorry!");
+};
+
+///////////////////////////////
+//////// Knockout Model ///////
+///////////////////////////////
 function AppViewModel() {
   var self = this;
-  self.wantsFilter = ko.observable(false);
-  self.locations = ko.observableArray(['spaceNeedle', 'smithTower', 'pikePlaceMarket', 
-                                                'gasWorks', 'seattleAquarium']);
+  self.wantsFilter = ko.observable(true);
+  self.locations = ko.observableArray(['Space Needle', 'Smith Tower', 'Pike Place Market', 
+                                                'Gas Works', 'Seattle Aquarium']);
+
   // Text Bindings
   self.search_text = ko.observable("");
-
 
   // Click Bindings
   self.reset = function () {
     // Resets the infowindow
-    if(currentInfowindow) {
-      currentInfowindow.setMap(null);
-    }
+    clean();
 
     var bounds = new google.maps.LatLngBounds();
     // Extend boundaries and displays each marker.
     for (var i = 0; i < markers.length; i++) {
       markers[i].setMap(map);
+      if (markers[i].getAnimation() !== null) {
+        markers[i].setAnimation(null);
+      }
       bounds.extend(markers[i].position);
     }
     map.fitBounds(bounds);
@@ -360,22 +390,40 @@ function AppViewModel() {
     selectMarker(searchValue);
   };
 
-  self.updateLocations = function() {
-     // Resets the infowindow
-    if(currentInfowindow) {
-      currentInfowindow.setMap(null);
-    }
-    hideMarkers(markers);
-    //TODO: should work but is not good coding style
-    // Extend boundaries and displays each marker.
+  self.toggleShow = function(location) {
+    
+    clean();
+
+    // Apply changes
     for (var i = 0; i < markers.length; i++) {
-      console.log(self.locations()[i]);
-      if(self.locations()[i]) {
-        markers[i].setMap(map);
+      // Find marker to enable or disable
+      if(markers[i].title === location) {
+        if (markers[i].getMap() === null) {
+          markers[i].setMap(map);
+        } else {
+          markers[i].setMap(null);
+        }
+        break;
       }
     }
     return true;
   };
+
+  self.select = function(location) {
+    // If unchecked throw error
+    clean();
+
+    for (var i = 0; i < markers.length; i++) {
+      if (markers[i].title === location) {
+        if (markers[i].getMap() === null) {
+          window.alert("You must check the locations checkbox in the filter before accessing location info.");
+        } else {
+          selectMarker(location.toString().toLowerCase());
+        }
+      } 
+    }
+  };
+
 
 }
 
