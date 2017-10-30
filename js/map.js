@@ -83,11 +83,11 @@ function searchPlaceCallback(result, marker, infowindow) {
         // Checks if there are photos.
         //TODO: Some kind of data structure storage to hold multiple urls
         if (dataRes.response.photos.count >= 1) {
-          displayHTML += '<img src="'
+          displayHTML += '<img src="';
           displayHTML += dataRes.response.photos.items[0].prefix;
           displayHTML += 'height200';
           displayHTML += dataRes.response.photos.items[0].suffix;
-          displayHTML += '" alt="Picture of location">'
+          displayHTML += '" alt="Picture of location">';
         } 
         // TODO: No photo photo input
       }
