@@ -43,12 +43,11 @@ function clean() {
 ///////////////////////////////
 ///// Infowindow Content //////
 ///////////////////////////////
-function searchPlaceCallback(result, marker, infowindow) {
+function searchPlaceCallback(result, marker) {
   if (result.meta.code != 200) {
     console.log("Failed to complete search. ERROR: " + result.meta.code);
   } else {
     currentMarker = marker;
-    currentInfowindow = infowindow;
     var innerHTML = '<div>';
     innerHTML += '<strong>' + marker.title + '</strong>';
     
@@ -93,7 +92,7 @@ function searchPlaceCallback(result, marker, infowindow) {
       }
       displayHTML += '</div>';
       currentInfowindow.setContent(innerHTML + displayHTML);
-      infowindow.open(map, currentMarker);
+      currentInfowindow.open(map, currentMarker);
     })
       .fail(function() {
         console.log( "Error attempting photo AJAX call to Foursquare." );
@@ -102,7 +101,7 @@ function searchPlaceCallback(result, marker, infowindow) {
   }
 }
 
-function getPlacesDetails(marker, infowindow) {
+function getPlacesDetails(marker) {
   var latlng = marker.position.lat() + ',' + marker.position.lng();
   var data = {
     client_id: CLIENT_ID,
@@ -117,7 +116,7 @@ function getPlacesDetails(marker, infowindow) {
   var offsetLat = {lat: marker.position.lat() + 0.025, lng: marker.position.lng()};
   map.setCenter(offsetLat);
   var jqxhr = $.getJSON(foursquareAPI, data, function(result) {
-    searchPlaceCallback(result, marker, infowindow);
+    searchPlaceCallback(result, marker);
   })
     .fail(function() {
       console.log( "Error attempting AJAX call to Foursquare." );
@@ -125,24 +124,23 @@ function getPlacesDetails(marker, infowindow) {
     });
 }
 
-function populateInfoWindow(marker, infowindow) {
+function populateInfoWindow(marker) {
   // Check if infowindow is already open.
-  if (infowindow.marker != marker) {
-    infowindow.setContent('');
-    infowindow.marker = marker;
+  if (currentInfowindow.marker != marker) {
+    currentInfowindow.setContent('');
+    currentInfowindow.marker = marker;
 
     // Make sure content is cleared when infowindow is closed.
-    infowindow.addListener('closeclick', function() {
-      infowindow.marker = null;
+    currentInfowindow.addListener('closeclick', function() {
+      currentInfowindow.marker = null;
     });
 
     currentMarker = marker;
-    currentInfowindow = infowindow;
 
     // If a marker is clicked, do a place details search on it.
-    getPlacesDetails(currentMarker, currentInfowindow);
+    getPlacesDetails(currentMarker);
   } else {
-    infowindow.setMap(map);
+    currentInfowindow.setMap(map);
   }
 }
 
@@ -162,13 +160,13 @@ function makeMarkerIcon(markerColor) {
 }
 
 // Add locations to markers array
-function addToMarkers(marker, infowindow) {
+function addToMarkers(marker) {
   // Add marker to the markers array.
   markers.push(marker);
 
   // Create an onclick event to open the large infowindow at each marker.
   marker.addListener('click', function() {
-    populateInfoWindow(marker, infowindow);
+    populateInfoWindow(marker);
     marker.setAnimation(google.maps.Animation.BOUNCE);
     setTimeout(function() { marker.setAnimation(null); }, 1000);
   });
@@ -194,18 +192,20 @@ function selectMarker(markerTitle) {
   //TODO: Recommendations
   //TODO: Allow for incomplete searches
   var found = false;
-  var largeInfowindow = new google.maps.InfoWindow();
 
   for (var i = 0; i < markers.length; i++) {
     if (markerTitle === markers[i].title.toLowerCase()) {
-      markers[i].setMap(map);
-      var offsetLat = {lat: markers[i].position.lat() + 0.025, lng: markers[i].position.lng()};
+      currentMarker = markers[i];
+      var offsetLat = {lat: currentMarker.position.lat() + 0.025, lng: currentMarker.position.lng()};
       map.setCenter(offsetLat);
       found = true;
 
 
       clean();
-      populateInfoWindow(markers[i], largeInfowindow);
+      currentMarker.setIcon(highlightedIcon);
+      currentMarker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(function() { currentMarker.setAnimation(null); }, 1000);
+      populateInfoWindow(currentMarker);
 
       break;
     }
@@ -314,7 +314,7 @@ function initMap() {
   defaultIcon = makeMarkerIcon('0091FF');
   highlightedIcon = makeMarkerIcon('FFFF24');
 
-  var largeInfowindow = new google.maps.InfoWindow();
+  currentInfowindow = new google.maps.InfoWindow();
 
   // Use locations array to create array of markers.
   for (var i = 0; i< locations.length; i++) {
@@ -332,7 +332,7 @@ function initMap() {
       id: i
     });
 
-    addToMarkers(marker, largeInfowindow);
+    addToMarkers(marker);
   }
 
   var bounds = new google.maps.LatLngBounds();

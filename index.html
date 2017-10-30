@@ -39,7 +39,7 @@
           <div class="filter">
             <p>Filter: <input type="checkbox" data-bind="checked: wantsFilter" /></p>
             <div class="container" data-bind="visible: wantsFilter, foreach: { data: locations, as: 'location' }">
-              <div><input type="checkbox" data-bind="checked: location, click: $parent.toggleShow" /><span data-bind="text: location, click: $parent.select"></div>
+              <div><input type="checkbox" data-bind="checked: location, click: $parent.toggleShow" /><span data-bind="text: location, click: $parent.select"></span></div>
             </div>
           </div>
         </div>
