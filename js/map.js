@@ -187,6 +187,11 @@ function hideMarkers(markers) {
   }
 }
 
+function markerTimeout() {
+  currentMarker.setAnimation(google.maps.Animation.BOUNCE);
+  setTimeout(function() { currentMarker.setAnimation(null); }, 1000);
+}
+
 function selectMarker(markerTitle) {
   //TODO: AutoComplete
   //TODO: Recommendations
@@ -203,10 +208,8 @@ function selectMarker(markerTitle) {
 
       clean();
       currentMarker.setIcon(highlightedIcon);
-      currentMarker.setAnimation(google.maps.Animation.BOUNCE);
-      setTimeout(function() { currentMarker.setAnimation(null); }, 1000);
       populateInfoWindow(currentMarker);
-
+      markerTimeout();
       break;
     }
   }
